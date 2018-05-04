@@ -1,19 +1,1 @@
-script/cleanse_and_validate.bash
-#!/bin/bash
-RETRY_COUNT=0RETRY_COUNT_MAX=4RETRY_SLEEP=300RETURN_CODE=1
-echo "spark-submit --master yarn-client ${1} --queue ${17} --class ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9} ${10} ${11} ${12} ${13} ${14} ${15} ${16}"spark-submit --master yarn-client ${1} --queue ${17} --class ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9} ${10} ${11} ${12} ${13} ${14} ${15} ${16}RETURN_CODE=$?  until [[ ${RETRY_COUNT} -eq ${RETRY_COUNT_MAX} ]] || [[ ${RETURN_CODE} -eq 0 ]] ; do  ((RETRY_COUNT++))  sleep ${RETRY_SLEEP}    echo "Retry attempt ${RETRY_COUNT} of ${RETRY_COUNT_MAX}"  echo "spark-submit --master yarn-client ${1} --queue ${17} --class ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9} ${10} ${11} ${12} ${13} ${14} ${15} ${16}"  spark-submit --master yarn-client ${1} --queue ${17} --class ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9} ${10} ${11} ${12} ${13} ${14} ${15} ${16}  RETURN_CODE=$?done
-exit ${RETURN_CODE}
 
-script/reject_count.bash
-########################## Variable declarations ##########################
-WORKFLOW_ID=${1}WORKFLOW_VAR_FILE_PATH=${2}
-############################# Getting the Reject Count #############################
-function reject_count {        REJECTS=$(cat $(find /tmp/${WORKFLOW_ID} -type f -name '*cleanse*stdout') | grep -a  "REJECTED" | grep -o "[0-9]*")     echo "RECORDS_REJECTED=${REJECTS}" >> ${WORKFLOW_VAR_FILE_PATH}}
-reject_count
-exit 0
-
-oozie/cleanse_and_validate_workflow.xml
-<workflow-app xmlns="uri:oozie:workflow:0.4" name="cleanse_and_validate_${hive_table}">        <start to="cleanse_and_validate_ssh" />
-        <action name="cleanse_and_validate_ssh">         <ssh xmlns="uri:oozie:ssh-action:0.2">                <host>localhost</host>                <command>${cleanse_and_validate}/script/cleanse_and_validate.bash</command>                <arg>${spark_opts}</arg>                <arg>com.vanguard.dax.cmn.cleanse_and_validate.jobs.Validator</arg>                <arg>${cleanse_and_validate}/cleanse-and-validate.jar</arg>                <arg>${appPrefix}</arg>                <arg>cleanse_and_validate</arg>                <arg>${hdfs_input_directory_path}</arg>                <arg>${hdfs_schema_file_path}</arg>                <arg>${hdfs_avsc_file_path}</arg>                <arg>${hdfs_cleansed_directory_path}</arg>                <arg>${hdfs_rejects_directory_path}</arg>                <arg>${file_delimiter}</arg>                <arg>${convert_delimiter_to_unicode_flag}</arg>                <arg>${persistence_flag}</arg>                <arg>${remove_headers_flag}</arg>                <arg>${c_v_input_file_format}</arg>                <arg>${c_v_output_file_format}</arg>                <arg>spark</arg>             </ssh>             <ok to="ssh_createRejectCountFile" />             <error to="fail" />        </action>
-  <action name="ssh_createRejectCountFile">             <ssh xmlns="uri:oozie:ssh-action:0.2">                    <host>localhost</host>                    <command>${cleanse_and_validate}/script/reject_count.bash</command>                    <arg>${wf:id()}</arg>                    <arg>${WORKFLOW_VAR_FILE_PATH}</arg>             </ssh>             <ok to="end" />             <error to="fail" />        </action>
-        <kill name="fail">                <message>cleanse-and-validate-wf failed, error                        message[${wf:errorMessage(wf:lastErrorNode())}]                </message>        </kill>        <end name="end" /></workflow-app>
