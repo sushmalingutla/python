@@ -1,1 +1,7 @@
-python
+lgacy_brkg_lmv_bal_am_df_location=/data/temp/lgacy_brkg_lmv_bal_am
+lgacy_mf_sbs_bal_am_df_location=/data/temp/lgacy_mf_sbs_bal_am
+lgacy_mf_nsbs_bal_am_df_location=/data/temp/lgacy_mf_nsbs_bal_am
+vba_mf_sbs_bal_am_df_location=/data/temp/vba_mf_sbs_bal_am
+vba_mf_nsbs_bal_am_df_location=/data/temp/vba_mf_nsbs_bal_am
+vba_brkg_lmv_bal_am_df_location=/data/temp/vba_brkg_lmv_bal_am
+
